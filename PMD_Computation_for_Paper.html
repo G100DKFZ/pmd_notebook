@@ -1,0 +1,223 @@
+<html>
+
+<head>
+<style type="text/css">
+.knitr .inline {
+  background-color: #f7f7f7;
+  border:solid 1px #B0B0B0;
+}
+.error {
+	font-weight: bold;
+	color: #FF0000;
+}
+.warning {
+	font-weight: bold;
+}
+.message {
+	font-style: italic;
+}
+.source, .output, .warning, .error, .message {
+	padding: 0 1em;
+  border:solid 1px #F7F7F7;
+}
+.source {
+  background-color: #f5f5f5;
+}
+.rimage .left {
+  text-align: left;
+}
+.rimage .right {
+  text-align: right;
+}
+.rimage .center {
+  text-align: center;
+}
+.hl.num {
+  color: #AF0F91;
+}
+.hl.str {
+  color: #317ECC;
+}
+.hl.com {
+  color: #AD95AF;
+  font-style: italic;
+}
+.hl.opt {
+  color: #000000;
+}
+.hl.std {
+  color: #585858;
+}
+.hl.kwa {
+  color: #295F94;
+  font-weight: bold;
+}
+.hl.kwb {
+  color: #B05A65;
+}
+.hl.kwc {
+  color: #55aa55;
+}
+.hl.kwd {
+  color: #BC5A65;
+  font-weight: bold;
+}
+</style>
+<title>PMD Computation for TCR_COMPARISON</title>
+</head>
+<body>
+
+
+
+<p>The clonal analysis on four different RACE-PCR based TCR beta samples in the manuscript * Systematic comparative study of computational methods for T cell receptor sequencing data analysis * (Afzal et al.) was performed using an R package based on Polyclonal-Monoclonal Diversity (PMD) definition.<br>
+In the present Rhtml document we embedded the R code sufficient to run the PMD clonal analysis on the four experimental samples described in the manuscript.
+</p>
+<h2>Installation</h2>
+<p>Unzip the distribution file in a folder of choice (i.e. <code>~/PMD/</code>) and set in the next chunk the working directory accordingly.</p>
+<code>
+setwd("~/PMD/")<br>
+getwd()<br>
+</code>
+<p>For clarity, most of the chunks are not exported. In order to export the code of a single chunk into the report set the <code>echo</code> parameter to <code>TRUE</code>. </p>
+<h2> How to use the report </h2>
+<p>Open the PMD_Computation_for_Paper.html in a browser to see the static version of the notebook. This version contains the instructions to use it as an R notebook. The precomputated clonal planes are embedded into the html code.</p> 
+<p>The notebook is written in Rhtml and can be parsed via <a href="http://yihui.name/knitr/">Knitr</a>. We suggest to use <a href="http://www.rstudio.com/">RStudio</a> to play with the document.<br>
+This code depends on two external packages, <code>ggplot2</code> and <code>ggrepel</code>. Consider to install them before to run the notebook.</p>
+<h2> Input data format</h2> 
+The input data format has the following fields structure
+<br><br>
+<code>
+head(tab[tab$V5=="miTCR",])<br>
+                                                       V1                V2    V3 V4    V5      V6 V7 V8<br>
+12394    TGTGCCAGCAGTTTCTCGACCTGTTCGGCTAACTATGGCTACACCTTC  CASSFSTCSANYGYTF 10372  - miTCR sample2  1  1     #Jurkat Clone<br>
+12395                TGTGCCAGCAGCCTTGGGACAGATACGCAGTATTTT      CASSLGTDTQYF   538  - miTCR sample2  1  1     #CEM clone<br>
+                                                       V1                V2    V3 V4    V5      V6 V7 V8<br>
+head(tab[tab$V5=="miXCR",])<br>                                                  
+15877    TGTGCCAGCAGTTTCTCGACCTGTTCGGCTAACTATGGCTACACCTTC  CASSFSTCSANYGYTF 10044  - miXCR sample2  1  1     #Jurkat Clone<br>
+15878                TGTGCCAGCAGCCTTGGGACAGATACGCAGTATTTT      CASSLGTDTQYF   533  - miXCR sample2  1  1     #CEM clone<br>
+</code>
+<br><br>
+<p>The first column represents the "primary key" of the data. This column is different for each row. The third column must contain the reads count. All the other columns contain metadata information about the clone. We will use column 5 (analysis tool) as annotation label for the analysis. Each sample is provided as a separate table.</p>
+
+<div class="chunk" id="unnamed-chunk-2"><div class="rcode"><div class="output"><pre class="knitr r">## [1] &quot;/Users/raffo/PMD&quot;
+</pre></div>
+<div class="output"><pre class="knitr r">##             Richness     Shannon invSimpson     Evenness   pmdIndex
+## IMSEQ       4.709530 0.412838999   1.067847 0.0328305005  -7.154310
+## IMonitor    5.433722 0.551266010   1.089691 0.0429567128  -6.971463
+## LymAnalyzer 6.126869 0.676713791   1.107113 0.0508877383  -6.899656
+## RTCR        3.806662 0.024991196   1.003084 0.0015395384 -11.271229
+## TCRklass    4.574711 0.366021896   1.060200 0.0292360081  -7.280541
+## miGEC       4.700480 0.313516624   1.051205 0.0249779279  -7.548324
+## miTCR       1.609438 0.005794705   1.000836 0.0004177110 -11.911390
+## miXCR       1.609438 0.004278000   1.000581 0.0002902336 -12.436794
+</pre></div>
+</div><div class="rimage default"><img src="figure/unnamed-chunk-2-1.png" title="plot of chunk unnamed-chunk-2" alt="plot of chunk unnamed-chunk-2" class="plot" /></div><div class="rcode">
+<div class="output"><pre class="knitr r">##             Richness  Shannon invSimpson  Evenness  pmdIndex
+## IMSEQ       6.726233 2.526788   1.526335 0.2114775 -4.945135
+## IMonitor    8.105308 6.007308   3.286078 0.5954532 -3.656725
+## LymAnalyzer 8.374246 6.432270   3.571903 0.6370701 -3.602283
+## RTCR        8.342840 6.860832   4.581415 0.7627969 -3.312835
+## TCRklass    8.171882 6.840996   4.745037 0.7805558 -3.243260
+## miGEC       8.206856 7.076943   5.236083 0.8303857 -3.151077
+## miTCR       8.155649 6.660486   4.487886 0.7525233 -3.298326
+## miXCR       8.183677 6.718086   4.529771 0.7572096 -3.293912
+</pre></div>
+</div><div class="rimage default"><img src="figure/unnamed-chunk-2-2.png" title="plot of chunk unnamed-chunk-2" alt="plot of chunk unnamed-chunk-2" class="plot" /></div><div class="rcode">
+<div class="output"><pre class="knitr r">##             Richness   Shannon invSimpson Evenness  pmdIndex
+## IMSEQ       7.114769  7.049325   6.160647 0.910238 -2.769007
+## IMonitor    8.493105 10.526749  37.403118 1.828521 -1.865838
+## LymAnalyzer 8.740337 10.871873  40.951133 1.872049 -1.875332
+## RTCR        8.800114 10.938295  61.883592 2.090345 -1.682522
+## TCRklass    8.610137 10.763272  66.031592 2.130012 -1.605160
+## miGEC       8.645762 10.902068  73.213790 2.182950 -1.565883
+## miTCR       8.614683 10.638832  56.815221 2.049784 -1.679301
+## miXCR       8.630343 10.688176  57.630634 2.056272 -1.676756
+</pre></div>
+</div><div class="rimage default"><img src="figure/unnamed-chunk-2-3.png" title="plot of chunk unnamed-chunk-2" alt="plot of chunk unnamed-chunk-2" class="plot" /></div><div class="rcode">
+<div class="output"><pre class="knitr r">##             Richness  Shannon invSimpson Evenness   pmdIndex
+## IMSEQ       7.024649 10.03662   919.2945 4.860587  1.1673890
+## IMonitor    8.459140 11.76219  1238.9165 3.887576 -0.2338173
+## LymAnalyzer 8.744329 11.98001  1374.1239 4.028901 -0.2270025
+## RTCR        8.803274 11.64918  1036.6479 3.851378 -0.3626060
+## TCRklass    8.658693 11.49512   949.6643 3.786311 -0.3638343
+## miGEC       8.694837 11.50893   790.2708 3.819237 -0.3522956
+## miTCR       8.648397 11.44208   928.1701 3.775977 -0.3677882
+## miXCR       8.667852 11.48195   932.6159 3.770915 -0.3769650
+</pre></div>
+</div><div class="rimage default"><img src="figure/unnamed-chunk-2-4.png" title="plot of chunk unnamed-chunk-2" alt="plot of chunk unnamed-chunk-2" class="plot" /></div></div>
+
+<h2> Expand the analysis </h2>
+
+<p>With the minimal amount of code provided in this notebook it is possible to extend the analysis on the provided data samples. <br>
+<h3> Change the analysis attribute </h3>
+The first idea is to average the output of all the tools and see the location of each sample in the clonal plane.<br>
+First combine the four input dataframes
+<div class="chunk" id="unnamed-chunk-3"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">tab</span><span class="hl kwb">&lt;-</span><span class="hl kwd">rbind</span><span class="hl std">(tab1,tab2,tab3,tab4)</span>
+<span class="hl kwd">head</span><span class="hl std">(tab,</span><span class="hl num">1</span><span class="hl std">)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">##                                                 V1               V2 V3 V4
+## 1 AGTGCCAGCAGTTTCTCGACCTGTTCGGCTAACTATGGCTACACCTTC SASSFSTCSANYGYTF  5  -
+##         V5      V6 V7 V8
+## 1 IMonitor sample1  1  1
+</pre></div>
+</div></div>
+Then we collapse the clones on the basis of the sample column (V6)
+<div class="chunk" id="unnamed-chunk-4"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">res</span><span class="hl kwb">&lt;-</span><span class="hl kwd">pmd</span><span class="hl std">(tab,</span><span class="hl kwc">ISrange</span><span class="hl std">=</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl std">,</span><span class="hl num">2</span><span class="hl std">),</span><span class="hl kwc">factorRange</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">6</span><span class="hl std">))</span>
+</pre></div>
+</div></div>
+Simply now, plot the clonal plane
+<div class="chunk" id="unnamed-chunk-5"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">pmdscatterplot</span><span class="hl std">(res</span><span class="hl opt">$</span><span class="hl std">eulerMat,</span> <span class="hl kwc">labelsize</span><span class="hl std">=</span><span class="hl num">4</span><span class="hl std">,</span><span class="hl kwc">spotRadius</span><span class="hl std">=</span><span class="hl num">4</span><span class="hl std">)</span>
+</pre></div>
+</div><div class="rimage default"><img src="figure/unnamed-chunk-5-1.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" class="plot" /></div></div>
+and check the sample clonality.
+<div class="chunk" id="unnamed-chunk-6"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">res</span><span class="hl opt">$</span><span class="hl std">eulerMat</span>
+</pre></div>
+<div class="output"><pre class="knitr r">##         Richness    Shannon  invSimpson  Evenness   pmdIndex
+## sample1 6.464588  0.8911706    1.386664 0.1777961 -5.1440285
+## sample2 9.078522  7.3100894    5.436214 0.8603530 -3.2558163
+## sample3 9.487442 11.5529052   67.953416 2.1428057 -1.7771900
+## sample4 9.526172 12.4796893 1559.125195 4.0223487 -0.4523961
+</pre></div>
+</div></div>
+Is interesting to observe on the plane how the data points show an increasing of the clonality from sample 1 to sample 4. Note that Shannon index put more emphasis in the clonality change of the first 3 samples whereas invSimpson underline changes in the last 3 samples. On the clonal plane it's easy to catch the clonality change in all the four samples and the corresponding pmdIndex is fewer influenced in characterizing the clonality of the two extreme samples.
+</p>
+<h3>Combining attributes</h3>
+As second example we show how to plot all the samples on the same scatterplot with different colors.<br>
+First we have to combine and collapse the clones using the information on both the tools (V5) and the sample (V6)
+<div class="chunk" id="unnamed-chunk-7"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">res</span><span class="hl kwb">&lt;-</span><span class="hl kwd">pmd</span><span class="hl std">(tab,</span><span class="hl kwc">ISrange</span><span class="hl std">=</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl std">,</span><span class="hl num">2</span><span class="hl std">),</span><span class="hl kwc">factorRange</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">5</span><span class="hl std">,</span><span class="hl num">6</span><span class="hl std">))</span>
+</pre></div>
+</div></div>
+The <code>pmdscatterplot()</code> function has many parameters that modify its behavior. The parameter <code>color</code>, controls the color of each single data point. If the value is set to <code>TRUE</code>, the function expects that the secondary attribute <code>color</code> is present in the primary attribute <code>eulerMat</code> declared in the input dataframe (<code>res</code> in this case). The default value of this parameter is <code>color=FALSE</code>. To construct this secondary attribute, first we extract the information from the names of the diversity matrix (<code>eulerMat</code>), and then we add back this information to the same matrix creating the attribute <code>color</code>
+
+<div class="chunk" id="unnamed-chunk-8"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">colors</span><span class="hl kwb">&lt;-</span><span class="hl kwd">strsplit</span><span class="hl std">(</span><span class="hl kwd">rownames</span><span class="hl std">(res</span><span class="hl opt">$</span><span class="hl std">eulerMat),</span><span class="hl str">&quot;_&quot;</span><span class="hl std">)</span>
+<span class="hl com"># the sample is the second element of the name list so we use tail() to select it</span>
+<span class="hl std">res</span><span class="hl opt">$</span><span class="hl std">eulerMat</span><span class="hl opt">$</span><span class="hl std">color</span><span class="hl kwb">&lt;-</span><span class="hl kwd">rapply</span><span class="hl std">(colors,</span> <span class="hl kwa">function</span><span class="hl std">(</span><span class="hl kwc">x</span><span class="hl std">)</span> <span class="hl kwd">tail</span><span class="hl std">(x,</span> <span class="hl num">1</span><span class="hl std">))</span>
+</pre></div>
+</div></div>
+
+Now we can plot the data notifying to the function that we want to use the color feature
+<div class="chunk" id="unnamed-chunk-9"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">pmdscatterplot</span><span class="hl std">(res</span><span class="hl opt">$</span><span class="hl std">eulerMat,</span> <span class="hl kwc">labelsize</span><span class="hl std">=</span><span class="hl num">4</span><span class="hl std">,</span><span class="hl kwc">spotRadius</span><span class="hl std">=</span><span class="hl num">4</span><span class="hl std">,</span><span class="hl kwc">color</span><span class="hl std">=T)</span>
+</pre></div>
+</div><div class="rimage default"><img src="figure/unnamed-chunk-9-1.png" title="plot of chunk unnamed-chunk-9" alt="plot of chunk unnamed-chunk-9" class="plot" /></div></div>
+In this case the labels can disturb the representation of the data and thus it is possible to remove them through the labeling attribute.
+<div class="chunk" id="unnamed-chunk-10"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">pmdscatterplot</span><span class="hl std">(res</span><span class="hl opt">$</span><span class="hl std">eulerMat,</span> <span class="hl kwc">labelsize</span><span class="hl std">=</span><span class="hl num">4</span><span class="hl std">,</span><span class="hl kwc">spotRadius</span><span class="hl std">=</span><span class="hl num">4</span><span class="hl std">,</span><span class="hl kwc">color</span><span class="hl std">=T,</span> <span class="hl kwc">labeling</span><span class="hl std">=F)</span>
+</pre></div>
+</div><div class="rimage default"><img src="figure/unnamed-chunk-10-1.png" title="plot of chunk unnamed-chunk-10" alt="plot of chunk unnamed-chunk-10" class="plot" /></div></div>
+</p>
+<h3> License </h3>
+<code>
+This notebook is free software: you can redistribute it and/or modify<br>
+it under the terms of the GNU General Public License as published by<br>
+the Free Software Foundation, either version 3 of the License, or<br>
+(at your option) any later version.<br>
+<br>
+This program is distributed in the hope that it will be useful,<br>
+but WITHOUT ANY WARRANTY; without even the implied warranty of<br>
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br>
+GNU General Public License for more details.<br>
+<br>
+You should have received a copy of the GNU General Public License<br>
+along with this program.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.
+<code>
+</body>
+</html>
